@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OPERATION ESCOBAR — CLASSIFIED</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --paper: #e8dfc8;
+    --paper-dark: #d4c9a8;
+    --ink: #1a1208;
+    --ink-faded: #3d2e14;
+    --red: #8b1a1a;
+    --red-stamp: #a01010;
+    --fade: #8a7a5a;
+    --green-ts: #1a4a1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1612;
+    font-family: 'Courier Prime', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px 80px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Paper document */
+  .document {
+    background: var(--paper);
+    width: 100%;
+    max-width: 780px;
+    padding: 60px 70px;
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.15),
+      4px 4px 0 rgba(0,0,0,0.1),
+      8px 8px 0 rgba(0,0,0,0.07),
+      0 20px 60px rgba(0,0,0,0.6);
+    opacity: 0;
+    transform: translateY(30px) rotate(-0.3deg);
+    animation: reveal 1.2s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+  }
+
+  @keyframes reveal {
+    to { opacity: 1; transform: translateY(0) rotate(-0.3deg); }
+  }
+
+  /* Paper texture overlay */
+  .document::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  /* Coffee stain */
+  .document::after {
+    content: '';
+    position: absolute;
+    top: 120px;
+    right: 80px;
+    width: 90px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid rgba(120, 80, 30, 0.15);
+    box-shadow:
+      inset 0 0 20px rgba(120, 80, 30, 0.08),
+      0 0 0 8px rgba(120, 80, 30, 0.04);
+    transform: rotate(15deg) scaleX(1.2);
+    pointer-events: none;
+  }
+
+  /* ── HEADER ── */
+  .doc-header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+  }
+
+  .agency-line {
+    font-family: 'Special Elite', cursive;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--fade);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0;
+    animation: fadein 0.5s ease 1.4s forwards;
+  }
+
+  .doc-title {
+    font-family: 'Special Elite', cursive;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0;
+    animation: fadein 0.5s ease 1.6s forwards;
+  }
+
+  .doc-subtitle {
+    font-size: 11px;
+    color: var(--fade);
+    letter-spacing: 2px;
+    opacity: 0;
+    animation: fadein 0.5s ease 1.7s forwards;
+  }
+
+  /* ── CLASSIFICATION BANNER ── */
+  .classification-top {
+    text-align: center;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadein 0.4s ease 1.2s forwards;
+  }
+
+  .class-badge {
+    display: inline-block;
+    font-family: 'Special Elite', cursive;
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: var(--red);
+    border: 2px solid var(--red);
+    padding: 5px 20px;
+    text-transform: uppercase;
+  }
+
+  /* ── META FIELDS ── */
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 30px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed var(--fade);
+    opacity: 0;
+    animation: fadein 0.5s ease 1.9s forwards;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .meta-label {
+    color: var(--fade);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    min-width: 80px;
+  }
+
+  .meta-value {
+    color: var(--ink-faded);
+    font-weight: 700;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    margin-bottom: 24px;
+    opacity: 0;
+  }
+
+  .section:nth-child(1) { animation: fadein 0.5s ease 2.1s forwards; }
+  .section:nth-child(2) { animation: fadein 0.5s ease 2.3s forwards; }
+  .section:nth-child(3) { animation: fadein 0.5s ease 2.5s forwards; }
+  .section:nth-child(4) { animation: fadein 0.5s ease 2.7s forwards; }
+
+  .section-title {
+    font-family: 'Special Elite', cursive;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--fade);
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--paper-dark);
+  }
+
+  .section-body {
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--ink-faded);
+  }
+
+  .section-body p { margin-bottom: 10px; }
+
+  .redacted {
+    background: var(--ink);
+    color: var(--ink);
+    padding: 0 4px;
+    user-select: none;
+    cursor: default;
+    border-radius: 1px;
+  }
+
+  .redacted:hover {
+    background: var(--ink-faded);
+  }
+
+  /* ── FLAG BOX ── */
+  .flag-section {
+    margin: 32px 0;
+    padding: 20px 24px;
+    background: rgba(26, 18, 8, 0.06);
+    border: 1px solid rgba(26, 18, 8, 0.2);
+    border-left: 4px solid var(--ink);
+    position: relative;
+    opacity: 0;
+    animation: fadein 0.6s ease 2.9s forwards;
+  }
+
+  .flag-section::before {
+    content: 'EXHIBIT A';
+    position: absolute;
+    top: -9px;
+    left: 16px;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--fade);
+    background: var(--paper);
+    padding: 0 6px;
+  }
+
+  .flag-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--fade);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .flag-value {
+    font-family: 'Courier Prime', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--green-ts);
+    letter-spacing: 0.5px;
+    word-break: break-all;
+  }
+
+  /* ── STAMPS ── */
+  .stamp-confirmed {
+    position: absolute;
+    top: 180px;
+    left: 50px;
+    font-family: 'Special Elite', cursive;
+    font-size: 28px;
+    color: rgba(26, 74, 26, 0.25);
+    border: 4px solid rgba(26, 74, 26, 0.2);
+    padding: 8px 16px;
+    transform: rotate(-22deg);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: 0;
+    animation: stampin 0.3s ease 3.2s forwards;
+  }
+
+  .stamp-classified {
+    position: absolute;
+    bottom: 200px;
+    right: 55px;
+    font-family: 'Special Elite', cursive;
+    font-size: 32px;
+    color: rgba(139, 26, 26, 0.2);
+    border: 4px solid rgba(139, 26, 26, 0.18);
+    padding: 8px 14px;
+    transform: rotate(12deg);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: 0;
+    animation: stampin 0.3s ease 3.4s forwards;
+  }
+
+  @keyframes stampin {
+    0%   { opacity: 0; transform: rotate(-22deg) scale(1.4); }
+    60%  { opacity: 1; transform: rotate(-22deg) scale(0.95); }
+    100% { opacity: 1; transform: rotate(-22deg) scale(1); }
+  }
+
+  .stamp-classified {
+    animation: stampin2 0.3s ease 3.4s forwards;
+  }
+
+  @keyframes stampin2 {
+    0%   { opacity: 0; transform: rotate(12deg) scale(1.4); }
+    60%  { opacity: 1; transform: rotate(12deg) scale(0.95); }
+    100% { opacity: 1; transform: rotate(12deg) scale(1); }
+  }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    opacity: 0;
+    animation: fadein 0.5s ease 3.0s forwards;
+  }
+
+  .footer-left {
+    font-size: 10px;
+    color: var(--fade);
+    letter-spacing: 1px;
+    line-height: 1.8;
+  }
+
+  .signature-block {
+    text-align: right;
+    font-size: 10px;
+    color: var(--fade);
+    letter-spacing: 1px;
+  }
+
+  .signature-line {
+    width: 140px;
+    height: 1px;
+    background: var(--fade);
+    margin-bottom: 4px;
+    margin-left: auto;
+  }
+
+  /* ── HOLE PUNCHES ── */
+  .holes {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 60px 0;
+    pointer-events: none;
+  }
+
+  .hole {
+    width: 12px;
+    height: 12px;
+    background: #1a1612;
+    border-radius: 50%;
+    margin-left: 9px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+  }
+
+  /* ── PAGE NUMBER ── */
+  .page-num {
+    position: absolute;
+    bottom: 20px;
+    right: 30px;
+    font-size: 10px;
+    color: var(--fade);
+    letter-spacing: 2px;
+  }
+
+  @keyframes fadein {
+    to { opacity: 1; }
+  }
+
+  /* ── TERMINAL BOOT (top of page) ── */
+  .terminal-boot {
+    width: 100%;
+    max-width: 780px;
+    margin-bottom: 20px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 11px;
+    color: #4a9a4a;
+    opacity: 0;
+    animation: fadein 0.5s ease 0s forwards;
+  }
+
+  .boot-line {
+    opacity: 0;
+    animation: fadein 0.1s ease forwards;
+  }
+
+  .boot-line:nth-child(1)  { animation-delay: 0.0s; }
+  .boot-line:nth-child(2)  { animation-delay: 0.1s; }
+  .boot-line:nth-child(3)  { animation-delay: 0.2s; }
+  .boot-line:nth-child(4)  { animation-delay: 0.35s; }
+  .boot-line:nth-child(5)  { animation-delay: 0.5s; }
+  .boot-line:nth-child(6)  { animation-delay: 0.65s; }
+
+  @media (max-width: 600px) {
+    .document { padding: 40px 30px 40px 45px; }
+    .meta-grid { grid-template-columns: 1fr; }
+    .stamp-confirmed, .stamp-classified { display: none; }
+  }
+</style>
+</head>
+<body>
+
+
+<div class="terminal-boot">
+  <div class="boot-line">&gt; CONNECTING TO SECURE NODE...</div>
+  <div class="boot-line">&gt; AUTHENTICATION: <span style="color:#a0d0a0">PASSED</span></div>
+  <div class="boot-line">&gt; DECRYPTING DOCUMENT CACHE...</div>
+  <div class="boot-line">&gt; INTEGRITY CHECK: <span style="color:#a0d0a0">OK</span></div>
+  <div class="boot-line">&gt; LOADING OPERATION FILE: <span style="color:#e0e060">ESCOBAR_FINAL.PDF</span></div>
+  <div class="boot-line">&gt; ████████████████████ 100%</div>
+</div>
+
+<div class="document">
+
+ 
+  <div class="holes">
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+  </div>
+
+  <div class="stamp-confirmed">VERIFIED</div>
+  <div class="stamp-classified">CLASSIFIED</div>
+
+ 
+  <div class="classification-top">
+    <div class="class-badge">⬛ TOP SECRET // NOFORN // ORCON</div>
+  </div>
+
+ 
+  <div class="doc-header">
+    <div class="agency-line">Financial Intelligence Unit — Crypto Crimes Division</div>
+    <div class="doc-title">Operation Escobar</div>
+    <div class="doc-subtitle">Case File No. BTC-2024-0047 &nbsp;|&nbsp; Final Intelligence Report</div>
+  </div>
+
+  
+  <div class="meta-grid">
+    <div class="meta-row">
+      <span class="meta-label">DATE:</span>
+      <span class="meta-value">13 JAN 2024</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">REF:</span>
+      <span class="meta-value">BTC-2024-0047-F</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">SUBJECT:</span>
+      <span class="meta-value">Blockchain Trail Analysis</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">ANALYST:</span>
+      <span class="meta-value"><span class="redacted">████████████</span></span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">STATUS:</span>
+      <span class="meta-value">TRAIL CONFIRMED</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">CLEARANCE:</span>
+      <span class="meta-value">TS/SCI</span>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-title">01 — Executive Summary</div>
+    <div class="section-body">
+      <p>Following the identification of wallet address <strong>1FfmbHfnpaZjKFvyi1okTjJJusN455paPH</strong> in intercepted communications, financial analysts successfully traced a complex laundering operation spanning 7 transaction hops across the Bitcoin network.</p>
+      <p>Funds were routed through a Whirlpool-style CoinJoin mixing service before being consolidated and transmitted to a terminal address. An embedded OP_RETURN payload in the final transaction has been decoded and confirmed.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">02 — Transaction Trail</div>
+    <div class="section-body">
+      <p>The subject entity employed a classic peel chain obfuscation strategy combined with a 5-participant CoinJoin at block <strong>820201</strong>. Post-mix funds were consolidated via address reuse before termination. Two decoy transactions were identified and excluded from the primary trail.</p>
+      <p>Terminal node: <strong>1BoatSLRHtKNngkdXEeobR76b53LETtpyT</strong> — funds remain unspent as of report date. Subject entity identity: <span class="redacted">████████████████████████</span>.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">03 — Decoded Payload</div>
+    <div class="section-body">
+      <p>OP_RETURN output recovered from TXID <strong>b8c9d0e1f2a3b4c5...</strong>, vout:1. Hex decoded to ASCII. Contents confirmed as active command infrastructure domain.</p>
+    </div>
+  </div>
+
+  
+  <div class="flag-section">
+    <div class="flag-label">Confirmed Domain — Exhibit A</div>
+    <div class="flag-value" id="flag-display">blitz{https://[YOUR-VERCEL-URL]}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">04 — Recommendations</div>
+    <div class="section-body">
+      <p>Domain has been flagged for monitoring. Further analysis of <span class="redacted">████</span> associated infrastructure is ongoing. Refer to Case File <strong>BTC-2024-0048</strong> for continued investigation.</p>
+      <p>This document is authorised for distribution to <span class="redacted">████████████████</span> only. Unauthorised disclosure is a violation of <span class="redacted">██</span> U.S.C. § <span class="redacted">███</span>.</p>
+    </div>
+  </div>
+
+  
+  <div class="doc-footer">
+    <div class="footer-left">
+      HANDLE VIA CRYPTO CHANNELS ONLY<br>
+      DESTROY AFTER READING<br>
+      <span style="font-size:9px">© FIU-CCD 2024 — ALL RIGHTS RESERVED</span>
+    </div>
+    <div class="signature-block">
+      <div class="signature-line"></div>
+      AUTHORISING OFFICER<br>
+      <span class="redacted">████████████</span><br>
+      FIU — CRYPTO CRIMES DIV.
+    </div>
+  </div>
+
+  <div class="page-num">PAGE 1 OF 1</div>
+
+</div>
+
+</body>
+</html>
